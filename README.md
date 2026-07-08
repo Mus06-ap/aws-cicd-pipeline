@@ -1,45 +1,84 @@
-# AWS Security Posture Scanner
+# AWS CI/CD Pipeline — Containerised Security Scanner on ECS Fargate
 
-Automated security scanner that detects 
-misconfigurations in AWS environments and 
-generates a professional HTML report.
+Automated deployment pipeline that containerises an AWS security scanner and runs it daily on ECS Fargate using Docker, ECR, Terraform, and EventBridge. Zero manual intervention required.
 
-## What It Detects
+## Architecture
 
-| Check | Severity | Service |
-|-------|----------|---------|
-| Public S3 buckets | CRITICAL | Amazon S3 |
-| IAM users without MFA | HIGH | AWS IAM |
-| Root account access keys | CRITICAL | AWS IAM |
-| Dangerous ports open to internet | CRITICAL | AWS EC2 |
+Code Push to GitHub
+|
+Docker Build (local)
+|
+Amazon ECR (image registry)
+|
+EventBridge Rule (daily 8am UTC)
+|
+ECS Fargate Task (pulls image, runs scanner)
+|
+CloudWatch Logs (stores results)
+
+
+## What This Does
+
+The AWS Security Posture Scanner runs automatically every day at 8am UTC without any manual steps. When triggered it scans the AWS account for misconfigurations across IAM, S3, and EC2, then logs all findings to CloudWatch.
+
+## Infrastructure Deployed
+
+| Resource | Purpose |
+|----------|---------|
+| Amazon ECR | Stores the Docker image |
+| ECS Fargate Cluster | Runs the container serverlessly |
+| ECS Task Definition | Defines CPU, memory, and IAM permissions |
+| IAM Execution Role | Allows ECS to pull from ECR |
+| IAM Task Role | Least-privilege permissions for the scanner |
+| CloudWatch Log Group | Stores scan results and logs |
+| EventBridge Rule | Triggers the scan daily at 8am UTC |
+| Security Group | Outbound only for AWS API calls |
 
 ## Tech Stack
 
-Python · Boto3 · AWS IAM · Amazon S3 · AWS EC2
+Docker, Amazon ECR, Amazon ECS Fargate, Terraform, AWS EventBridge, CloudWatch, IAM, Python, Boto3
 
-## Setup
+## How To Deploy
 
+### Prerequisites
 ```bash
-pip install boto3
+terraform --version
 aws configure
-python scanner.py
+docker --version
 ```
 
-## How It Works
+### Build and Push Docker Image
+```bash
+docker build -t aws-security-scanner .
 
-The scanner connects to your AWS account 
-via Boto3, runs security checks across 
-IAM, S3, and EC2, then generates an HTML 
-report with severity scoring.
+aws ecr create-repository --repository-name aws-security-scanner --region ap-southeast-1
 
-## Real Finding Detected
+aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.ap-southeast-1.amazonaws.com
 
-During testing, the scanner identified a 
-HIGH severity finding in a live AWS 
-environment — an IAM admin user with no 
-MFA device assigned. Finding was documented 
-in FINDINGS.md, remediated, and verified 
-by re-running the scanner which returned 
-0 findings after the fix.
+docker tag aws-security-scanner:latest <account-id>.dkr.ecr.ap-southeast-1.amazonaws.com/aws-security-scanner:latest
 
-## Project Structure
+docker push <account-id>.dkr.ecr.ap-southeast-1.amazonaws.com/aws-security-scanner:latest
+```
+
+### Deploy Infrastructure
+```bash
+cd terraform
+terraform init
+terraform plan
+terraform apply
+```
+
+### Destroy
+```bash
+terraform destroy
+```
+
+## Security Controls
+
+IAM task role scoped to scanner permissions only. No hardcoded credentials anywhere. Security group allows outbound traffic only. CloudWatch logs retained for 7 days.
+
+## Author
+
+Musab Elfurgi | Cloud Engineering Student
+Asia Pacific University (APU) Malaysia
+GitHub: github.com/Mus06-ap
