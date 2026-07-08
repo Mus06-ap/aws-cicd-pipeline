@@ -80,30 +80,44 @@
 </head>
 <body>
     <h1>AWS Security Posture Report</h1>
-    <p class="meta">Generated: 2026-05-03 14:26:44</p>
+    <p class="meta">Generated: 2026-07-07 02:13:23</p>
 
     <div class="summary">
         <div class="stat">
             <div class="stat-number"
-            style="color:#e0e0e0">0</div>
+            style="color:#e0e0e0">2</div>
             <div class="stat-label">Total Findings</div>
         </div>
         <div class="stat">
             <div class="stat-number critical">
-            0</div>
+            1</div>
             <div class="stat-label">Critical</div>
         </div>
         <div class="stat">
             <div class="stat-number high">
-            0</div>
+            1</div>
             <div class="stat-label">High</div>
         </div>
     </div>
+<h2>Findings</h2>
+    <div class="finding HIGH">
+        <span class="badge HIGH">
+        HIGH</span>
+        <h3 style="margin:10px 0 5px">
+        GREENMAN</h3>
+        <p class="meta">IAM user GREENMAN has no MFA enabled</p>
+        <div class="fix">
+        Fix: Enable MFA device for this user</div>
+    </div>
 
-    <div class="clean">
-        <h2 class="green">No findings detected</h2>
-        <p>Your AWS environment passed all
-        security checks.</p>
+    <div class="finding CRITICAL">
+        <span class="badge CRITICAL">
+        CRITICAL</span>
+        <h3 style="margin:10px 0 5px">
+        root account</h3>
+        <p class="meta">Root account has active access keys</p>
+        <div class="fix">
+        Fix: Delete root account access keys immediately</div>
     </div>
 
 </body>
